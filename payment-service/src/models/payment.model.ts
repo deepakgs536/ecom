@@ -5,7 +5,7 @@ export interface IPayment extends Document {
   userId: string;
   amount: number;
   currency: string;
-  status: 'PENDING' | 'SUCCESS' | 'FAILED';
+  status: 'PENDING' | 'SUCCESS' | 'FAILED' | 'REFUNDED';
   transactionId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -19,7 +19,7 @@ const PaymentSchema = new Schema(
     currency: { type: String, default: 'USD' },
     status: {
       type: String,
-      enum: ['PENDING', 'SUCCESS', 'FAILED'],
+      enum: ['PENDING', 'SUCCESS', 'FAILED', 'REFUNDED'],
       default: 'PENDING',
     },
     transactionId: { type: String, required: true, unique: true },
