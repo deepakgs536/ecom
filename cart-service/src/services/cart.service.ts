@@ -1,6 +1,8 @@
 import { CartRepository } from '../repositories/cart.repository';
 import { ICart, ICartItem } from '../models/cart.model';
 import { AppError } from '../utils/AppError';
+import axios from 'axios';
+import { env } from '../config/env';
 
 export class CartService {
   private repository: CartRepository;
@@ -10,7 +12,8 @@ export class CartService {
   }
 
   private calculateTotal(cart: ICart): number {
-    return cart.items.reduce((total, item) => total + item.quantity * item.price, 0);
+    const total = cart.items.reduce((sum, item) => sum + item.quantity * item.price, 0);
+    return Math.round(total * 100) / 100;
   }
 
   private formatCartResponse(cart: ICart) {
@@ -32,6 +35,19 @@ export class CartService {
   }
 
   async addItemToCart(userId: string, itemData: ICartItem) {
+    // Cross-Service Validation: Ensure product exists and price is accurate
+    try {
+      const response = await axios.get(`${env.PRODUCT_SERVICE_URL}/products/${itemData.productId}`);
+      const product = response.data.data;
+      // Override any client-provided price with the trusted source of truth
+      itemData.price = product.price;
+    } catch (error: any) {
+      if (error.response && error.response.status === 404) {
+        throw new AppError('Product not found in catalog', 404);
+      }
+      throw new AppError('Failed to validate product with Product Service', 500);
+    }
+
     let cart = await this.repository.findByUserId(userId);
     if (!cart) {
       cart = await this.repository.createCart(userId, [itemData]);

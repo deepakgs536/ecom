@@ -6,7 +6,8 @@ dotenv.config();
 const envSchema = z.object({
   PORT: z.string().default('3000'),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  MONGO_URI: z.string().min(1)
+  MONGO_URI: z.string().min(1),
+  PRODUCT_SERVICE_URL: z.string().url().default('http://localhost:3000')
 });
 
 const cleanEnv = Object.fromEntries(Object.entries(process.env).map(([k, v]) => [k, typeof v === 'string' ? v.trim() : v]));
