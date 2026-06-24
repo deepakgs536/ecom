@@ -71,6 +71,38 @@ describe('Order API', () => {
     expect(res.body.success).toBe(false);
   });
 
+  it('should rollback order creation if cart deletion fails', async () => {
+    mockedAxios.get.mockResolvedValueOnce({
+      data: {
+        data: {
+          items: [{ productId: 'prod1', quantity: 1, price: 50 }]
+        }
+      }
+    });
+
+    // Mock cart deletion failure
+    mockedAxios.delete.mockRejectedValueOnce(new Error('Network timeout'));
+
+    const res = await request(app).post('/orders').send({
+      userId,
+      shippingAddress: {
+        street: '123 Main St',
+        city: 'Metropolis',
+        state: 'NY',
+        zip: '10001',
+        country: 'USA'
+      }
+    });
+
+    // Should return 500 and order should be rolled back
+    expect(res.status).toBe(500);
+    expect(res.body.success).toBe(false);
+    
+    // Verify it was actually deleted (user order count should still be 1 from the first test)
+    const getRes = await request(app).get(`/orders/user/${userId}`);
+    expect(getRes.body.data.length).toBe(1);
+  });
+
   it('should fetch user orders', async () => {
     const res = await request(app).get(`/orders/user/${userId}`);
     expect(res.status).toBe(200);

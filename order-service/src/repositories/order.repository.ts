@@ -25,4 +25,8 @@ export class OrderRepository {
 
     return Order.findByIdAndUpdate(orderId, updatePayload, { new: true, runValidators: true }).exec();
   }
+
+  async deleteOrder(orderId: string): Promise<void> {
+    await Order.findByIdAndDelete(orderId).exec();
+  }
 }
