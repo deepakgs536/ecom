@@ -1,6 +1,10 @@
 import request from 'supertest';
 import mongoose from 'mongoose';
 import app from '../src/app';
+import axios from 'axios';
+
+jest.mock('axios');
+const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 beforeAll(async () => {
   await mongoose.connect('mongodb://localhost:27017/cart-test-db');
@@ -24,6 +28,11 @@ describe('Cart API', () => {
   });
 
   it('should add an item to the cart', async () => {
+    // Mock successful product fetch
+    mockedAxios.get.mockResolvedValueOnce({
+      data: { data: { price: 50.0 } }
+    });
+
     const res = await request(app).post(`/cart/${userId}/items`).send({
       productId,
       quantity: 2,
@@ -37,6 +46,11 @@ describe('Cart API', () => {
   });
 
   it('should increment quantity if item already exists', async () => {
+    // Mock successful product fetch
+    mockedAxios.get.mockResolvedValueOnce({
+      data: { data: { price: 50.0 } }
+    });
+
     const res = await request(app).post(`/cart/${userId}/items`).send({
       productId,
       quantity: 3,
@@ -77,6 +91,11 @@ describe('Cart API', () => {
   });
 
   it('should clear the entire cart', async () => {
+    // Mock successful product fetch
+    mockedAxios.get.mockResolvedValueOnce({
+      data: { data: { price: 10.0 } }
+    });
+
     await request(app).post(`/cart/${userId}/items`).send({
       productId,
       quantity: 1,

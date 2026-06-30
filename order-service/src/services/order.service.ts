@@ -33,7 +33,8 @@ export class OrderService {
       price: item.price,
     }));
 
-    const totalAmount = items.reduce((total, item) => total + item.quantity * item.price, 0);
+    const rawTotal = items.reduce((total, item) => total + item.quantity * item.price, 0);
+    const totalAmount = Math.round(rawTotal * 100) / 100;
 
     const orderPayload = {
       userId,
@@ -44,10 +45,13 @@ export class OrderService {
 
     const newOrder = await this.repository.create(orderPayload);
 
+    // Distributed Transaction Idempotency: Rollback if cart clear fails
     try {
       await axios.delete(`${env.CART_SERVICE_URL}/cart/${userId}`);
     } catch (err) {
-      console.error('Failed to clear cart after order creation', err);
+      console.error('Failed to clear cart after order creation, rolling back order...', err);
+      await this.repository.deleteOrder(newOrder._id.toString());
+      throw new AppError('Failed to clear cart. Order creation was rolled back to prevent duplicate checkout.', 500);
     }
 
     return newOrder;
