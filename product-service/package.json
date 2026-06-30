@@ -22,10 +22,12 @@
         "express": "^5.2.1",
         "helmet": "^8.2.0",
         "mongoose": "^9.7.2",
+        "serverless-http": "^4.0.0",
         "winston": "^3.19.0",
         "zod": "^4.4.3"
     },
     "devDependencies": {
+        "@types/aws-lambda": "^8.10.162",
         "@types/cors": "^2.8.19",
         "@types/express": "^5.0.6",
         "@types/jest": "^30.0.0",
